@@ -1,0 +1,509 @@
+# Needs know about Rack a little bit.
+# File loading sequence:
+* EBA:
+1. Environment.rb
+2. Boot.rb
+3. Application.rb
+application.initialize!
+run application # application just is a rack app.
+# get subclasses is the way to find all railties or engines.
+* here you can find them: rails/engine/railties.rb
+# application.initialize! will do
+1. run_initializers
+2. collect all initializers
+3. bind all initializers to application
+4. sort and run the block of initializers
+# bin/rails
+- require 'pathname'
+- require 'cli'
+- Rails::ScriptRailsLoader.exec_script_rails!
+- default command/application.rb so will ask you params to new a rails application.
+- rails server
+1. require 'config/application.rb'
+2. application.rb will require 
+- boot
+- bundler
+- rails/all
+- bundler check
+3. load MyApplication.
+4. will exec Rails::Server.new.start
+5. run config.ru
+# In class Application < Rails::Application
+You can do anything that you can do in railties and engine.
+# commands/{server, generator, console ....}
+# Rails::Server < Rack::Server
+- Rails::Server.new.start
+- OptionParser.new
+- Rails will create(cache pids sessions sockets), but not tmp
+- trap(:INT) { exit }
+# Generators, there is a lot of generator code you can refer to.
+# ActiveSupport::StringInquirer.new('production') will generate #production? method also will return a string.
+# require 'active_support/core_ext/object/blank' implement #blank? 
+# require 'active_support/core_ext/time/conversions' #to time format methods.
+# Lazy load:
+   initializer "active_record.initialize_timezone" do
+     ActiveSupport.on_load(:active_record) do
+       self.time_zone_aware_attributes = true
+       self.default_timezone = :utc
+     end
+   end
+Last line of active_record/base.rb is:
+ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Base)
+# Usage of benchmark
+Benchmark.ms do
+  operation
+end => 2000.12302398682
+# include ActiveSupport::Rescuable => implemented rescue_from {}
+# def my_method(*args)
+  options = args.*extract_options!*
+  puts "Arguments:  #{args.inspect}" 		# Arguments:  [1, 2]
+  puts "Options:    #{options.inspect}" 	# Options:    {:a=>:b}
+end
+# Callback invoked whenever a subclass of the current class is created.
+class Foo
+   def self.inherited(subclass)
+      puts "New subclass: #{subclass}"
+   end
+end
+# lazy load: 
+"before_configuration", 
+"before_eager_load", 
+"before_initialize", 
+"after_initialize"
+# lib dir was added to load-path by $LOAD_PATH.unshift(lib-path)
+# The way you rethrow an exception in Ruby is calling raise without passing any exception class or message. Ruby will dutifully re-raise the more recent exception.
+# ActiveSupport::FileUpdateChecker
+i18n_reloader = ActiveSupport::FileUpdateChecker.new(paths) do
+  I18n.reload!
+end
+ActionDispatch::Reloader.to_prepare do
+  i18n_reloader.execute_if_updated
+end
+# Prepare callbacks are run before each request, and cleanup callbacks after each request.
+ActionDispatch::Reloader.to_prepare do
+  i18n_reloader.execute_if_updated
+end
+# Rails::Initializable used to orgnize and order all initializer blocks by tsort. initializers_for to get all initializers of Initializable object.
+# Railtie is the core of the Rails framework and *provides several hooks to extend Rails and/or modify the initialization process.*
+# initializer {}, initializer {|app| app.config....}, actually it just a Initializer Object.
+# loading things when console launched.
+console do |app|
+   ActiveRecord::Base.logger = Logger.new(STDERR) # stderr log
+end
+# Rails::Railtie::Configuration
+# Besides the +Railtie+ configuration which is shared across the application, in a *Rails::Engine* you can access *autoload_paths*, *eager_load_paths* and *autoload_once_paths*, which, differently from a *Railtie*, are scoped to the current engine.
+config.autoload_paths << File.expand_path("../lib/some/path", __FILE__)
+# path of engine
+* sample
+class MyEngine < Rails::Engine
+  paths["app/controllers"] = "lib/controllers"
+  paths["app/controllers"] << "lib/controllers"
+  # all available paths
+  paths["app"]                 # => ["app"]
+  paths["app/controllers"]     # => ["app/controllers"]
+  paths["app/helpers"]         # => ["app/helpers"]
+  paths["app/models"]          # => ["app/models"]
+  paths["app/views"]           # => ["app/views"]
+  paths["lib"]                 # => ["lib"]
+  paths["lib/tasks"]           # => ["lib/tasks"]
+  paths["config"]              # => ["config"]
+  paths["config/initializers"] # => ["config/initializers"]
+  paths["config/locales"]      # => ["config/locales"]
+  paths["config/routes"]       # => ["config/routes.rb"]
+end
+* default:
+def paths
+  @paths ||= begin
+    paths = Rails::Paths::Root.new(@root)
+    paths.add "app",                 :eager_load => true, :glob => "*"
+    paths.add "app/assets",          :glob => "*"
+    paths.add "app/controllers",     :eager_load => true
+    paths.add "app/helpers",         :eager_load => true
+    paths.add "app/models",          :eager_load => true
+    paths.add "app/mailers",         :eager_load => true
+    paths.add "app/views"
+    paths.add "lib",                 :load_path => true
+    paths.add "lib/assets",          :glob => "*"
+    paths.add "lib/tasks",           :glob => "**/*.rake"
+    paths.add "config"
+    paths.add "config/environments", :glob => "#{Rails.env}.rb"
+    paths.add "config/initializers", :glob => "**/*.rb"
+    paths.add "config/locales",      :glob => "*.{rb,yml}"
+    paths.add "config/routes",       :with => "config/routes.rb"
+    paths.add "db"
+    paths.add "db/migrate"
+    paths.add "db/seeds",            :with => "db/seeds.rb"
+    paths.add "vendor",              :load_path => true
+    paths.add "vendor/assets",       :glob => "*"
+    paths.add "vendor/plugins"
+    paths
+  end
+end
+# if your engine is a rack, you can define like this *endpoint MyRackApplication* and you are able to *mount MyEngine::Engine => '/engine'*
+# add rack to middleware stack
+class Engine < Rails::Engine
+  middleware.use SomeMiddleware
+end
+# route.rb, the upper, the high priority
+# All methods that like (initialier, middleware, config) are in configuration.rb of /engine|railtie|application/ directories.
+all class variables are config.{asset_path|consider_all_requests_local|logger|...}
+# $` ?????
+# you can set engine name *engine_name "my_engine"*, where it been used, routes, and rake task base namespace. also config.engine_name.xxxx you can set config like this.
+# DSL? Where is engine's best place to store global variable.
+# Railtie priority: 
+config.railties_order = [Blog::Engine, :main_app, :all]
+# copy your engine migrations to application:
+rake ENGINE_NAME:install:migrations
+And load seeds by: MyEngine::Engine.load_seed
+# include all helpers that in engine helpers directory:
+class ApplicationController < ActionController::Base
+  helper MyEngine::Engine.helpers
+end
+# Mount engine
+mount MyEngine::Engine => "/my_engine", :as => "my_engine"
+my_engine.root_url #=> /my_engine/
+# In Engine, you have *main_app* method to get url path.
+main_app.foo_path
+# after include ActiveSupport::Configurable
+user = User.new
+config_accessor :allowed_access
+user.config.allowed_access = true
+user.allowed_access = 1
+user.config.allowed_access # => true
+user.allowed_access        # => 1
+# #abort method.
+# BacktraceCleaner could remove error backtrace, e.g.
+bc = BacktraceCleaner.new
+bc.add_filter   { |line| line.gsub(Rails.root, '') }
+bc.add_silencer { |line| line =~ /mongrel|rubygems/ }
+bc.clean(exception.backtrace) # will strip the Rails.root prefix and skip any lines from mongrel or rubygems
+# load path ($:) $:.unshift(railties_path)
+# *paths["vendor/assets"].existent_directories
+# Development:
+- before_configuration
+- before_initialize
+- to_prepare (each request)
+- after_initialize
+# Production (cache_classes)
+- before_configuration
+- before_initialize
+- to_prepare
+- before_eager_load
+- after_initialize
+# Configurable
+Railties is Configurable.
+You are used at `YouApp::Application.configure {}` in development.rb, production.rb.
+this is means you can get `config.xxxxx` in the configure block. 
+# Rails Plugin will be loaded at last. Application, Railtie/Engine, Plugin.
+And you can't declare a Engine in a Plugin, it will load twice. engine once, plugin once, Engine only for gem.
+Only thing different between Engine and Plugin is: plugin's init.rb will be loaded during boot process.
+# rake notes
+test/audit/audit_plan_finder_test.rb:
+  * [ 72] [FIXME] need full plans for this
+# rake middleware
+Show Rack middleware stack.
+use ActionDispatch::Static
+use Rack::Lock
+use Rack::Runtime
+use Rails::Rack::Logger
+use ActionDispatch::ShowExceptions
+use ActionDispatch::RemoteIp
+use Rack::Sendfile
+use ActionDispatch::Callbacks
+use ActiveRecord::ConnectionAdapters::ConnectionManagement
+use ActiveRecord::QueryCache
+use ActionDispatch::Cookies
+use ActionDispatch::Session::CookieStore
+use ActionDispatch::Flash
+use Myasics::JsonParamValidator
+use ActionDispatch::ParamsParser
+use Rack::MethodOverride
+use ActionDispatch::Head
+use ActionDispatch::BestStandardsSupport
+use Warden::Manager
+use Myasics::ApiRequestDetector
+use HoptoadNotifier::Rack
+run Myasics::Application.routes
+# test_helper is required of your test_helper.rb
+require 'rails/test_help'
+# All Rails.xxx methods are stored in rails.rb
+# paths.rb cool thing.
+root = Root.new "/rails"
+root.add "app/controllers", :eager_load => true
+
+path = root["app/controllers"]
+path.eager_load?               # => true
+path.is_a?(Rails::Paths::Path) # => true
+path.is_a?(Array) # => true
+
+path.inspect      # => ["app/controllers"]
+path << "lib/controllers"
+path.inspect      # => ["app/controllers", "lib/controllers"]
+
+root.add "config/routes", :with => "config/routes.rb"
+root["config/routes"].inspect # => ["config/routes.rb"]
+
+root["app/controllers"].expanded # => ["/rails/app/controllers"]
+root["app/controllers"].existent # => ["/rails/app/controllers"]
+# Rails internal convension.
+qor/lib/qor.rb # all files use autoload or eager_autoload
+qor/lib/qor/engine.rb, base.rb ...
+qor/lib/rails/generators/{all generators goes here.}
+qor/test
+- railties.rb, engine.rb, plugin.rb should be different.
+- class method define first
+- all attr_accessor kind of stuff put at top of file.
+- public, protected, private keywords
+# Rails install will require, all active* + action*.
+Rails code + Active* + Action* is under one git repo.
+but active* + action* can be installed sperated.
+Actually, active* + action* can be in different git repo. and a rails gem that require and load all other active* + action* gems.
+# what the diff between *use* and *run* for rack middleware.
++use+ adds a middleware to the stack, +run+ dispatches to an application.
+use Module
+run Module.new
+# === is same to is_a?
+# MimeNegotiation is convert request.format, request.accepts, which convert text/html to :html
+# Mime::Type.register(mime_type, symbol, mime_type_synonyms = [], extension_synonyms = [], skip_lookup = false)
+# Mime::LOOKUP a hash of all registered mime types.
+# Mime::Type.parse(accept header string)
+# ActionDispatch/http main classes: ActionDispatch::Response, ActionDispatch::Request
+# MyApp::Application.routes->ActionDispatch::Routing::RouteSet.new
+# all rails supported HTTP_METHODS = [:get, :head, :post, :put, :delete, :options]
+# Microkernel Architecture
+# all routes.rb DSL methods are in mapper.rb
+# all action_dispatch/middlewares are used in application#default_middleware_stack
+# User.find(1).base_uri # => "/users/1"
+class User < ActiveRecord::Base
+  include Rails.application.routes.url_helpers
+  def base_uri
+    user_path(self)
+  end
+end
+you also can include "Rails.application.routes.url_helpers" in metal for metal to use url helpers.
+# module should consider been included to class or module.
+if respond_to?(:class_attribute)
+  class_attribute :default_url_options
+else
+  mattr_accessor :default_url_options
+end
+# link_to actually called *url_for* to generate the url
+# Journey::Router is a rack, that the main routing processor.
+# ActiveRecord query cache, will return same result for same url parameters.
+# active model secure_password:
+class User < ActiveRecord::Base
+  has_secure_password
+end
+User.find_by_name("david").try(:authenticate, "notright")
+# observer is in active model
+# User.observers.enable :all do
+ # all user observers are enabled for
+ # just the duration of the block
+end
+# Active Model Lint Tests, tells you if an object is compliant with AM API
+# Xxx.config == ActiveSupport::OrderedOptions.new
+# ActiveSupport::InheritableOptions
+# ActiveSupport::BasicObject is a non-method class. used for proxy object.
+# if you want to warn deceperation message please use ActiveSupport::Deprecation.warn "xxx"
+# get action name from env:
+env['action_dispatch.request.path_parameters'][:action]
+# ActionDispatch::MiddlewareStack::Middleware
+MiddlewareStack is a rack application. it included a lot of middlewares.
+class Middleware
+ def initialize(app)
+  @app = app
+ end
+ def call(env)
+  @app.call(env)
+ end
+end
+# Rails has 2 middleware stacks???????????
+# Middleware stack: [First, Second, Last, RouteSet]
+request process order is from first to last, then RouteSet.
+Last.build(RouteSet)
+Second.build(Last+RouteSet)
+First.build(Second+Last+RouteSet)
+*m.Build(app)* is means, let *Middleware* wrap the *app*
+config.middleware.insert Name => Middleware.new(Name)
+so MiddlewareStack.middlewares all are Middleware class.
+# rails plugin new ~/Code/Ruby/blog # way to create engine or plugin.
+# Metal included AbstractController::Rendering
+# Way to add renderer
+ActionController::Renderers.add :csv do |obj, options|
+  filename = options[:filename] || 'data'
+  str = obj.respond_to?(:to_csv) ? obj.to_csv : obj.to_s
+  send_data str, :type => Mime::CSV,
+    :disposition => "attachment; filename=#{filename}.csv"
+end
+# AbstractController::Collector will define json, html, xml methods.
+ActionController::Collector added a #any method. format.any
+format.costom(:json) {}
+# config.action_view.javascript_expansions = { :defaults => %w(jquery jquery_ujs) }
+config.action_view.javascript_expansions[:defaults] = %w(foo.js bar.js)
+javascript_include_tag :defaults
+# options.delete(:glob) swallow the option.
+# Dispatcher#dispatch
+controller.action(action_str).call(env)
+action method return a middleware stack
+# Stack#dispatch is just process(action)
+# ActionController::MiddlewareStack < ActionDispatch::MiddlewareStack to make it aware of options like 
+use AuthenticationMiddleware, :except => [:index, :show]
+# AbstractController::Base is not a Rack Middleware.
+# define a module without any method
+Module.new do
+  instance_methods.each { |selector| remove_method(selector) }
+end
+# Myasics::Application.routes.draw
+also has Myasics::Application.routes.(prepend|append)
+# draw {} block will parse by mapper.instance_exec(&block)
+# route_set is Rack::Mount::RouteSet 
+https://github.com/josh/rack-mount
+# Method#arity | Proc#arity, return the arguments number.
+# Rack’s X-Cascade [404, {'X-Cascade' => 'pass'}, []]
+# freeze the bin files.
+# public :method1, :method2
+# Module.attr_internal_naming_format % attr ===> 
+@_%s % "name" = @_name
+# attr_internal_writer :view_context_class ===>
+@_view_context_class
+# Class.new(super_class) { xxx }
+# in module, the:
+included do
+   you can define *attr_accessor* here.
+end
+# In ActionView/helpers there are a lot of helper modules.
+# in module methods, there is some var, or method you can't find in that module, but you should be able to find it in base. or where it been included.
+# delegate below methods :to => :controller
+:request_forgery_protection_token, 
+:action_name, :controller_name, 
+:controller_path
+:params, :session, :cookies, :response, :headers, :flash
+# to init a ActionView, it will prepare:
+renderer
+lookup_context
+controller
+assigns
+# renderer#render to control rendering partial or template.
+# renderer will determine, render_template, render_with_layout, find_layout
+# resolver#find_template do find template, by find_templates(name, prefix, partial, details)
+# config.action_view = ActiveSupport::OrderedOptions.new
+config.action_view.xxxx is available then.
+# included do
+  extend SanitizeHelper::ClassMethods
+end
+SHOULD ==
+module ClassMethods
+include SanitizeHelper::ClassMethods
+end
+# Action View contexts are supplied to Action Controller to render template.The default Action View context is ActionView::Base.
+# LookupContext is the object responsible to hold all information required to lookup templates.
+# Mime::Type#register(string, symbol, mime_type_synonyms = [], extension_synonyms = [], skip_lookup = false)
+Mime::Type.register "text/html", :html, %w( application/xhtml+xml ), %w( xhtml )
+# Helper#capture
+<% @greeting = capture do %>
+  Welcome to my shiny new web page!  The date and time is
+  <%= Time.now %>
+<% end %>
+# How to use bundler:
+require "rubygems"
+require "bundler/setup"
+Bundler.require(:default)
+# ActionController#ImplicitRender
+will execute #render when explicit render method was called.
+# Rails Rack stack last line is:
+use RouteSet.new
+RouteSet#call(env) method will @router.call(env)
+@router = Journey::Router.new :parameters_key, :request_class
+# MiddlewareStack#build(action, block) means append a metal middleware at the bottom.
+# Middleware#build(app) means middleware will wrap around app.
+# Benchmark.bm(N) {|x| x.report('xxx') {} }
+# Render View process:
+*Setup*
+class TestController < ActionController::Base; end
+view_paths = ActionController::Base.view_paths
+@assigns = { :secret => 'in the sauce', :name => nil }
+
+@view = ActionView::Base.new(view_paths, @assigns)
+@view.view_renderer.render_body(@view, options)
+@view.render(:template => "xxx") => String
+
+@controller_view = TestController.new.view_context
+@controller_view.render('customer') => String
+# renderer#render returns a Rack::Body
+# View has view_flow, output_buffer
+view.output_buffer is final result.
+view.view_flow stored parts of the template. It's a @content hash.
+# Utilize method chain, to put all "options" parser into sub-module and use "super" to skip or deep into the chain.
+def match options
+  if options.key? :xxx
+    # parse options
+    super parsed_options
+  else
+    super
+  end
+end
+
+def initialize
+  # your initialization for module.
+  super
+end
+# Set implements a collection of unordered values with no duplicates.
+# Object#tap's purpose is perform operations on result, but not change it.
+(1..10).tap {
+  |x| puts "original: #{x.inspect}"
+}.to_a.tap {
+  |x| puts "array: #{x.inspect}"
+}.select {|x| x%2==0}.tap {
+  |x| puts "evens: #{x.inspect}"
+}.map {|x| x*x}.tap {
+  |x| puts "squares: #{x.inspect}"
+}
+# LookupContext#find_all is delegated to PathSet.find_all, which finally use Resolver#find_all.
+# @lookup_context.find_all
+"controller/action.locale.format.handler"
+and finally will convert to Dir[query] to find the file template. P.S. this is for FileTemplateResolver.
+* query : "/Users/michaelhe/projects/work/myasics/app/views/home/feedback{.en,.en,}{.json,}{.rhtml,.rjs,.builder,.rxml,.erb,}"
+# Class include module, class's method execute last. and super is module's method.
+module Xx
+  def init
+  end
+end
+
+class X
+  def init
+    super # => module Xx#init
+  end
+end
+# ActiveSupport::Deprecation
+module DeprecatedBehavior
+  def xxx
+    ActiveSupport::Deprecation.warn "xxx is no longer in use in rails 4.0", caller    
+  end
+end
+extend DeprecatedBehavior
+# all named_routes stored at
+ActionDispatch::Routing::RouteSet @helpers #=> [:x_path, :x_url]
+# ActionDispatch::Routing::RouteSet @routes is a big hash, which stored all named route's controller and action name # =>
+{ :running_plan=> ActionDispatch::Routing::Route instance }
+* ActionDispatch::Routing::Route has:
+@defaults={:controller=>"running_plans", :action=>"show"},
+@name="running_plan",
+@path="/my/plan/:id(.:format)",
+@requirements={:controller=>"running_plans", :action=>"show"},
+@segment_keys=[:id, :format],
+@set=#<ActionDispatch::Routing::RouteSet:0x106c1c8f0>,
+@conditions= {
+ :request_method=> /^GET$/,
+ :path_info=> /\A\/my\/plan\/([^\/.?]+)(?:\.([^\/.?]+))?\Z/
+},
+@app = ActionDispatch::Routing::RouteSet::Dispatcher instance.
+* when a request come in, all routes will be recurred. then @app.call, it's equal to *controller.action(action).call(env)*
+# ActionDispatch::Routing::RouteSet @set is Rack::Mount::RouteSet instance, which has a @named_routes stored a big hash:
+{:users=> <Rack::Mount::Route @app=<ActionDispatch::Routing::RouteSet::Dispatcher>
+* and @routes stored an Array:
+#<Rack::Mount::Route @app=#<ActionDispatch::Routing::RouteSet::Dispatcher>
+# lookup_context.view_paths is a array of resolvers.
+# we always said that performance of a concurrent system depends upon three critical times 
+1. process spawning
+2. context switching
+3. message passing times If you can make these fast it might work.
