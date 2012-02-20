@@ -1,0 +1,169 @@
+# How to monitor your system completely.
+
+## How many data we need to collect
+CPU
+Memory
+Network IO
+Network connections
+Route
+Disk IO
+Application
+
+## Which tools could help us to get data from servers
+
+* top
+O - order by column
+o - change columns order
+z, b - highlight running process
+d - change refresh delay
+space - manual refresh
+1 - show each cpu cores
+W - save settings
+
+* dstat
+dstat -cdlmnpsy // most frequent params
+if usr and sys close to 80% means syste overload.
+
+"int" the number of interrupts processed since the last update.
+"csw" stands for a context switch occurs when the CPU switches from one task to another.
+http://www.wplug.org/w/images/0/0b/Wplug-top034.txt
+
+equal to all of them: vmstat,iostat netstat,nfsstat,ifstat
+
+* netstat
+- netstat -atun | awk '{print $5}' | cut -d: -f1 | sed -e '/^$/d' |sort | uniq -c | sort -n // see count how many unique ip connections, then you can know how is hacker.
+- netstat -s // display detail information
+- netstat -nat | awk '{print $6}' | sort | uniq -c | sort -n // can use this to find out if server is under attack.
+- http://www.cyberciti.biz/tips/netstat-command-tutorial-examples.html
+
+* sar
+used to collect CPU and system usage to file, then you can check it later.
+
+* iostat
+iostat 1 100 // interval count
+check each disk's IO and system CPU usage
+
+* iftop
+Could monitor which ip is uploading and downloading things
+
+* cat /proc/meminfo
+
+* cat /proc/cpuinfo
+
+* cat /proc/zoneinfo
+
+* cat /proc/mounts
+
+* cat /etc/services
+List port of all services.
+
+* nmap
+scan ports of a server
+http://www.cyberciti.biz/tips/linux-scanning-network-for-open-ports.html
+
+* ntop
+a web based tool to analyse network.
+
+* htop
+a easy to use *top* command replacement.
+
+* mtr
+very good tool to lookup router info and performance
+
+* vnstat
+logging daily network traffic
+http://www.cyberciti.biz/tips/keeping-a-log-of-daily-network-traffic-for-adsl-or-dedicated-remote-linux-box.html
+
+* tcpdump
+which app consuming CPU, port, IO, network, memory
+
+* iotop
+Get disk read and write rate for each process.
+
+* sudo lsof -i:8888 (remember add sudo)
+check which process running on that port.
+
+* List open ports and which process own them.
+sudo lsof -i
+sudo netstat -plut
+
+* ss
+ss -l // list all services and ports
+ss -pl // list all services and ports and process own ports
+http://www.cyberciti.biz/tips/linux-investigate-sockets-network-connections.html
+
+* nmon
+// very professional system monitoring tool
+c = CPU        l = CPU Long-term   - = Faster screen updates                                                                                    
+m = Memory     j = Filesystems     + = Slower screen updates                                                                                    
+d = Disks      n = Network         V = Virtual Memory                                                                                           
+r = Resource   N = NFS             v = Verbose hints                                                                                         
+k = kernel     t = Top-processes   . = only busy disks/procs     
+
+* lscpu
+lscpu gathers CPU architecture information very detail.
+
+* NetHogs
+To lookup network usage of each process.
+http://nethogs.sourceforge.net/
+
+* atop
+atopsar
+- Resource consumption by all processes
+- Highlight critical resources
+- Permanent logging of resource utilization
+http://www.atoptool.nl/
+
+* latencytop & powertop
+what kind of operation/action is causing the latency to happen
+http://www.latencytop.org/
+
+## How to take actions based on these data
+
+
+## Linux cookbook
+http://blog.chinaunix.net/space.php?uid=18510&do=blog&id=216812
+
+## Utilities
+* check pid of process
+pidof ruby
+
+* unzip each kind of zip file
+tar  xvfj  lichuanhua.tar.bz2
+tar  xvfz  lichuanhua.tar.gz
+tar  xvfz  lichuanhua.tgz
+tar  xvf   lichuanhua.tar
+unzip     lichuanhua.zip
+
+* online view log
+https://github.com/tobi/clarity
+
+* ps
+ps -A | ps -e // list all processes
+ps -AlFH // to see tree structure, threads
+ps -ejH | ps axjf | pstree // process tree
+ps -u xxx // process run as xxx user
+pgrep xxx | ps -C xxx -o pid= // display pid for one process
+ps auxf | sort -nr -k 4 | head -10 // Find Out The Top 10 Memory Consuming Process
+ps auxf | sort -nr -k 3 | head -10 // Find Out top 10 CPU Consuming Process
+
+* cpulimit
+cpulimit -e firefox -l 30 // limit cpu usage for one process
+cpulimit -p 1313 -l 30
+
+* ionice
+nice -n 19 ionice -c2 -n7 /path/to/shell.script // then this will throttle exporting big file, like backup database.
+
+* get memory page size
+getconf PAGESIZE
+
+* load explanation
+http://apps.hi.baidu.com/share/detail/42742912
+
+## Command you should master with
+$ man cut
+$ man awk
+$ man sed
+$ man grep
+
+## systemtap

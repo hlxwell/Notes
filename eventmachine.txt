@@ -1,0 +1,89 @@
+# Don't block the reactor
+1. while(1) or while(true)
+2. Net::HTTP.new("")
+Use EM::HttpRequest instead.
+3. Slow Code
+Use EM.defer to optimze.
+4. Sleep will block
+
+# Everything should be in the EM.run {} block
+
+# EM.start_server ip, port, EM::Connection Class
+to create a em connection server.
+
+# EM::Connection
+*post_init* method will be executed when connection is built.
+*unbind* method will be called when connection is closed or disconnected.
+*receive_Data(data)* called with chunks of data.
+*send_data* method is used to send data to client.
+
+# EM Client
+EM.connect(ip, port, EM::Connection)
+
+# EM.stop
+??? the code after this still will be executed.
+
+# EM.next_tick
+
+# EM.add_timer(time) {}
+
+# EM.add_periodic_timer(time) {}
+
+# EM.defer {} runs a block concurrently on a sperate thread (from a pool of 20)
+
+# EM.defer(operation, completion_callback)
+
+# EM::Queue
+queue.pop {}
+queue.push(data)
+
+# Endless queue
+work = Proc.new { |item|
+  EM.next_tick {q.pop(&work)}
+}
+q.pop(&work)
+
+# EM::Channel
+is a publish/subscribe system.
+* c = EM::Channel.new
+* sid = c.subscribe { |m| to process message }
+* c.unsubscribe(sid)
+* c << data or message
+
+# EM::Deferrable
+* deferrable object can register *callback* and *errback*
+deferrable.callback {}
+deferrable.callback {|x, y, z|} // any number of args
+deferrable.errback {}
+deferrable.set_deferred_status :succeeded
+* To trigger the callback by calling:
+deferrable.succeed
+deferrable.fail
+
+# UDP
+* Server:
+EM.open_datagram_socket(ip, port, handler_class)
+* Client:
+s = EM.open_datagram_socket('', nil)
+s.send_datagram(data, ip, port)
+
+# Unix domain server
+* Create server:
+EM.start_server('/tmp/server', nil, handler_class)
+EM.start_unix_domain_server('/tmp/server', nil, handler_class)
+* Connect to server:
+EM.connect_unix_domain("/tmp/server") do |c|
+  c.send_data(data)
+end
+
+# WebSocket
+* Server
+EM::WebSocket.start(:host => x, :port => x) do |ws|
+  ws.onopen {}
+  ws.onmessage {|msg| ws.send(data) // send data to browser }
+  ws.onclose {}
+  ws.onerror {|e| }
+end
+
+# EM::Synchrony
+Just help you to make the code looks like normal flow but not callback hell.
