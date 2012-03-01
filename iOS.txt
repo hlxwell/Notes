@@ -1,0 +1,97 @@
+# Timer won't run itself should be added to run loop.
+# CGRect = CGPoint + CGSize
+# [[UIColor xxColor] CGColor] to get CGColor
+# CGPointMake(x, x)
+# CGRect currentBounds = self.bounds
+
+# stroke fill color font size all stored in Graphic State
+* CGContextSaveGState
+* CGContextRestoreGState
+
+# CGContextRelease(context)
+
+# UIGraphicsPushContext, UIGraphicsPopContext
+
+# Counteract the flipping, add below code before: UIGraphicsPushContext
+CGContextTranslateCTM(context, 0.0f, self.frame.size.height);
+CGContextScaleCTM(context, 1.0f, -1.0f)
+
+# We can cache a color space and color into a static variable.
+CGColorCreate(colorSpace, float values)
+
+# use this these methods are faster to get color:
+* CGContextSetStrokeColorWithColor(context, color)
+* CGContextSetFillColorWithColor(context, color)
+faster than 
+* CGContextSetRGBStrokeColor(context, r,g,b,alpha)
+* CGContextSetRGBFillColor(context, r,g,b,alpha)
+
+# Shadow color
+CGContextSetShadowWithColor(context, offset, radius, color)
+
+# CGContextClip(context)
+
+# CGContextClipToMask(context, maskRect, alpha) 
+
+# Transform (Current Transforamtion Matrix) this hold transformation Matrix in the context.
+CGContextTranslateCTM
+CGContextScaleCTM
+CGContextRotateCTM
+
+# Path
+* CGContextBeginPath(context)
+* CGContextClosePath(context)
+* CGContextDrawPath(context, kCGPathFillStroke)
+
+# Line style
+* CGContextSetLineCap
+* CGContextSetLineJoin
+* CGContextSetLineWidth
+
+# Add line to path
+* CGContext[Move]ToPoint
+* [AddCurve]
+* [AddLine]
+* [AddQuadCurve]
+* [AddArc]
+
+# Text drawing
+CGContextSelectFont(context, font, size, encoding)
+CGContextSetTextDrawingMode(context, kCGTextFill)
+CGContextSetTextPosition(context, x,y)
+CGContextShowText(context, string, length)
+
+* UIKit drawing text is slower but support utf-8
+
+# Judge if can be converted to Mac Roman Encoding
+bool [text canBeConvertedToEncoding:NSMacOSRomanStringEncoding]
+
+# Gradients
+//// prepare data
+CGFloat locations[2] = {0.0, 1.0}; *way to make array*
+CGFloat components[8] = {1,2,3,4,   5,6,7,8} // start,end color
+size_t numLocations = 2
+// unsigned int size_t
+/// prepare object
+CGColorSpaceRef rgbColorSpace = CGColorSpaceCreateDeviceRGB();
+CGGradientRef glossGradient = CGGradientCreateWithColorComponents(rgbColorSpace, components, locations, numLocations)
+///// draw
+CGContextDrawLinearGradient(context, glossGradient, topPoint, midPoint, 0)
+//// release them.
+CGGradientRelease(glossGradient)
+CGColorSpaceRelease(rgbColorSpace)
+
+# ceil and floor
+ceil(xxx)
+floor(xxx)
+
+# NSArray *wordArray = [str componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+
+# CoreFuncation string
+CFSTR("xxx")
+
+# CGColorRef color = [UIColor blueColor].CGColor
+
+# CGRectGetMaxX(rect)
+CGRectGetWidth(rect)
+CGRectGetHeight(rect)

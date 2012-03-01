@@ -1,0 +1,30 @@
+gem 'pg'
+
+# Domain
+heroku addons:add custom_domains:wildcard
+heroku domains:add *.yourdomain.com
+heroku domains:add www.example.com
+heroku domains:remove www.example.com
+heroku domains:clear
+75.101.163.44
+75.101.145.87
+174.129.212.2
+
+
+heroku create
+heroku logs
+heroku ps
+heroku run console
+heroku console
+
+heroku run rake db:create
+heroku run rake db:migrate
+heroku addons:add shared-database
+heroku db:pull 
+heroku db:push --app isafeplayer-homepage --confirm isafeplayer-homepage
+
+heroku logs --tail
+heroku logs -n 200
+heroku logs --source app
+heroku logs --ps router --tail
+heroku config:add LOG_LEVEL=DEBUG

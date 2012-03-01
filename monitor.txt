@@ -19,6 +19,7 @@ d - change refresh delay
 space - manual refresh
 1 - show each cpu cores
 W - save settings
+u - process of specific user
 
 * dstat
 dstat -cdlmnpsy // most frequent params
@@ -167,3 +168,9 @@ $ man sed
 $ man grep
 
 ## systemtap
+
+## lsof
+lsof -p pid // get open files of pid
+pidof command_name // get pid of command
+cut -c12-19 // only get 12-19 chars
+sort -rn // sort all text
