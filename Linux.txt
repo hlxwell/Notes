@@ -1,0 +1,161 @@
+# iptables
+# awk
+*Tutorial:* http://www.jiayii.com/awk-tutorial/
+1. system variables, like NF, NR ...
+2. string functions, like gsub, length ...
+echo "ababab" | awk 'gsub(/a/,"c")' # cbcbcb
+3. The special patterns BEGIN and END may be used to capture control *before the first input line is read* and *after the last*. BEGIN and END do not combine with other patterns.
+4. $0 is means all fields, $1 = first field, $2 = second field
+5. awk '{print $1 > "file"}' # write to file
+6. awk '{print $1; print $2}' # do multiple things.
+7. awk '{print $1 >> "file"}' # append things to file
+8. awk '{ printf "%8.2f %10ld", $1, $2 }' # format args same to c.
+9. awk 'BEGIN {exec at begin} END {exec at end} {each line}'
+10. statement of action:
+used like: awk '{if($1~/root/) print $0}'
+* if(x) xxx else yyy
+* while(x) xxx
+11. compare operators
+~ !~ == != > < >= <= && ||
+12. -F == set FS
+-v var=value # you can set system var here.
+13. awk 'pattern {action}'
+14. awk '{print $1,$2}' # the *,* means use a FS operator
+15. awk -f shell_file filename
+16. remove all backup files
+* ll | awk '{if($6 < "2012-04-01") print $8}'|xargs rm
+17. tail -f production.log | awk '/Completed/ {gsub(/ms/, "", $5); if($5 > 100) print $0}'
+18. rename files in batch: 
+ll|awk '/.md/ {print $9}'|awk -F ".md" '{print "mv", $1".md", $1".txt"}'
+
+
+# sed [address[,address]] instruction [arg-list]
+1. options
+-n # quiet silent, hide output unless met Print instruction.
+2. actions
+d delete
+a append
+i insert
+c change
+s substitute
+p print
+w file # write to file, sed s/xxx/yyy/w file
+3. pattern and hold section
+/regexp/[pattern section]
+g
+G
+h
+H
+x
+## Sample
+sed 's/regexp/replacement/g'
+sed '/regexp/ p'
+sed '/regexp/ w file'
+sed 's/^./\t&/' new # *&* means matched words for regexp.
+
+# uniq
+-f num # ignore the first #num fields in each line.
+-s chars # ignore first chars in each line.
+-i # case insensitive
+-d # only output the repeated lines
+-c # count each lines occurred times.
+
+# sort
+-k column
+-r reverse
+-g numeric sort
+-n string numeric sort
+-M month sort
+-f ignore case
+
+# backup a file
+cp filename{,.bak}
+
+# wild card
+ls *.{txt,pdf}
+ls em[123].rb
+
+# column -t
+# netstat -plunt
+t: tcp
+u: udp
+-l port
+-n show ip
+-p pid
+
+# mount remote disk
+sshfs name@server:/path/to/folder /path/to/mount/point
+
+# mount mem-directory
+mount -t tmpfs -o size=1024m tmpfs /mnt/ram
+
+# port redirection
+ssh -N -L2001:remotehost:80 user@somemachine
+
+# copy sshkey to remote server
+ssh-copy-id remote-machine
+
+# netstat options
+[--tcp|-t] [--udp|-u] [--raw|-w] [--listening|-l] 
+[--all|-a] [--numeric|-n] [--numeric-hosts] [--numeric-ports] [--numeric-users] [--symbolic|-N] [--extend|-e[--extend|-e]] 
+[--timers|-o] [--program|-p] [--verbose|-v] [--continuous|-c]
+
+# zcat
+cat gz file
+
+# tr string1 string2
+replace string1 to string2
+tr -d 123 # remove 1,2,3 from
+
+# grep
+
+## params
+-c count
+-R dir
+-n show line number
+## regexp
+^ (Caret) = match expression at the start of a line, as in ^A.
+$ (Question) = match expression at the end of a line, as in A$.
+\ (Back Slash) = turn off the special meaning of the next character, as in \^.
+[ ] (Brackets) = match any one of the enclosed characters, as in [aeiou]. Use Hyphen "-" for a range, as in [0-9].
+[^ ] = match any one character except those enclosed in [ ], as in [^0-9].
+. (Period) = match a single character of any value, except end of line.
+*(Asterisk) = match zero or more of the preceding character or expression.
+\{x,y\}  = match x to y occurrences of the preceding.
+\{x\} = match exactly x occurrences of the preceding.
+\{x,\}  = match x or more occurrences of the preceding.
+
+# ~/.bash_logout
+you can log or clear something after you logged out.
+
+# BASH_ENV
+
+# Mission
+1. delete files create before speific date
+2. detect if process is running, or else start it.
+
+# axel
+multi-thread downloading
+
+# Shell bases
+## specify bash
+#! /bin/bash
+
+## !!
+
+## declare -x
+-r
+
+## diff between "" and ''
+
+## log a system mail
+logger -p local0.notice -t hlxwell Messsssssage
+- Apr  5 13:33:49 michael-hes-MacBook-Pro hlxwell[7341]: Messsssssage
+
+## ll -R
+list all sub-directories
+
+# iptable
+http://www.thegeekstuff.com/2011/06/iptables-rules-examples/
+
+# ps -o pid,command

@@ -87,6 +87,7 @@ check which process running on that port.
 * List open ports and which process own them.
 sudo lsof -i
 sudo netstat -plut
+sudo lsof -i -P // for mac
 
 * ss
 ss -l // list all services and ports
@@ -118,6 +119,19 @@ http://www.atoptool.nl/
 * latencytop & powertop
 what kind of operation/action is causing the latency to happen
 http://www.latencytop.org/
+
+* pmap, to look at memory distribute status.
+pmap $PID | tail -1 >> mem.txt; SLEEP 0.001
+
+* pidstat - Report statistics for Linux tasks.
+pidstat 1 5  # five time, each time interval is 1 second.
+pidstat -C nginx -t -d  1 
+-C nginx # command
+-r # Memory
+-u # CPU
+-w # ContextSwitching
+-t # Threads
+-d # IO
 
 ## How to take actions based on these data
 

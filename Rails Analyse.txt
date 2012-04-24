@@ -507,3 +507,12 @@ ActionDispatch::Routing::RouteSet @helpers #=> [:x_path, :x_url]
 1. process spawning
 2. context switching
 3. message passing times If you can make these fast it might work.
+
+
+# Route
+namespace => N:Class, resource "N/Class" to recource "Class"
+scope :module => (N remove):Class
+scope "path" => (N add):Class == resource :xxx, :path => ppp
+
+# require 'socket'
+Socket.gethostname

@@ -1,0 +1,48 @@
+# How to use resque
+## Create Jobs
+class Archive
+  @queue = :file_serve
+  def self.perform(repo_id, branch = 'master')
+	 # do something here.
+  end
+end
+
+Resque.enqueue(Archive, self.id, branch)
+
+## Signals
+QUIT - Wait for child to finish processing then exit
+TERM / INT - Immediately kill child then exit
+USR1 - Immediately kill child but don't exit
+USR2 - Don't start to process any new jobs
+CONT - Start to process new jobs again after a USR2
+
+## Configuration
+* initializer
+rails_root = ENV['RAILS_ROOT'] || File.dirname(__FILE__) + '/../..'
+rails_env = ENV['RAILS_ENV'] || 'development'
+resque_config = YAML.load_file(rails_root + '/config/resque.yml')
+Resque.redis = resque_config[rails_env]
+
+* resque.yml
+development: localhost:6379
+test: localhost:6379
+staging: redis1.se.github.com:6379
+production: redis1.ae.github.com:6379
+
+RAILS_ENV=production resque-web rails_root/config/initializers/resque.rb
+
+## Running Resque scheduler in background
+PIDFILE=./resque-scheduler.pid BACKGROUND=yes \
+rake resque:scheduler
+
+## timezone
+scheduler.cron '13 0 22 * * 1-5' do
+  # every day of the week at 22:00:13
+end
+
+scheduler.cron '0 22 * * 1-5 Europe/Paris' do
+  # every day of the week when it's 22:00 in Paris
+end
+scheduler.cron '0 22 * * 1-5 Etc/GMT+2' do
+  # every day of the week when it's 22:00 in GMT+2
+end

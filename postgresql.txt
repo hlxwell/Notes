@@ -1,0 +1,8 @@
+# how to run
+
+# postgresql command
+\?
+\h
+\h select
+\d
+\d table name

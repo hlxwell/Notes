@@ -113,3 +113,8 @@ reference.sitepoint.com/css
 
 ## Offset
 $("x").offset() // Could get element *left*, *top*
+
+
+
+## some new stuff
+display: inline-block

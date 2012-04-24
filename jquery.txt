@@ -1,0 +1,9 @@
+Jquery Filters
+$("p").not("")
+$("p").has("")
+$("p").is("")
+$("p").hasClass("")
+$("p").slice(start, [end])
+$("p").map(callback)
+
+jQuery.isEmptyObject

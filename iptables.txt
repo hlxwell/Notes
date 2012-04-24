@@ -1,0 +1,14 @@
+# list rules
+sudo iptables -L
+
+# backup and restore
+* iptables-save > file
+* iptables-restore < file
+
+# clear filter table: iptables -F
+
+# clear nat table: iptables -t nat -F
+
+# delete chain: iptables [-t table] -X chain
+
+# iptables 

@@ -1,0 +1,258 @@
+# Model
+is used to read data from REST service, and convert them to JSON array or hash.
+
+# Controller
+is used to manage a collection of user data, like give count of records, and segmentation of records.
+
+# View
+is used to choose template and get data for rendering, and append them to the DOM.
+
+# Bindings
+sync between objs
+
+MyApp.instance1 = Ember.Object.create({name:xxx})
+MyApp.instance2 = Ember.Object.create({xxxname:"*MyApp.instance1.name*"})
+MyApp.instance2.get("xxxname")
+
+# Computerd Properties
+fullName: function() {}.property() // mark this as a property.
+{}.property(firstname, lastname) // tell ember when to update the property, if relied properties is changed.
+
+# auto update template
+<script type="text/x-handlebars">
+  The President: {{MyApp.president.fullName}}.
+</script>
+
+# extend
+Ember.Object.extend({})
+Ember.Object.create({}) // you can also pass
+
+# call super
+this._super(xxx)
+
+# reopen
+Used to monkey patch
+Person.reopen({ isPerson: true }); // monkey patch instances
+Person.reopenClass({}); // monkey patch class method
+
+# getter & setter
+fullName: Ember.computed(function(key, value) {})
+
+# Adding observers
+1. person.addObserver('fullName', function() {
+  // deal with the change
+});
+2. fullNameChanged: function() {
+  // this is an inline version of .addObserver
+}.observes('fullName')
+3. fullNameChanged: Ember.observer(function() {})
+
+# changes in array
+todos: []
+remaining: function(){}.property('todos.@each.isDone') // this means all "isDone" items count. and this value will be updated when the "isDone" items count changed.
+
+# Bindings
+## two-way binding
+* when one changed another will changed also, actually seems just used the value of other object.
+
+App.wife = Ember.Object.create({
+  householdIncome: 80000
+});
+
+App.husband = Ember.Object.create({
+  householdIncomeBinding: 'App.wife.householdIncome'
+});
+
+## one way binding
+App.user = Ember.Object.create({
+  fullName: "Kara Gates" // won't use userView's fullname
+});
+
+App.userView = Ember.View.create({
+  userNameBinding: Ember.Binding.oneWay('App.user.fullName') // use user's fullName
+});
+
+# namespace
+window.App = Ember.Application.create();
+
+# Ember.View
+var view = Ember.View.create({
+  templateName: 'say-hello',
+  name: "Bob"
+});
+* to append to DOM
+view.appendTo('#container');
+* if append to document body, below is the shorthand methods:
+view.remove()
+view.append()
+
+
+# handlebars
+<div {{#if isUrgent}}class="urgent"{{/if}}> # and {{#unless}}
+
+# with
+* you don't need to call person.firstName
+The context is the object on which properties are looked up.
+
+{{#with person}}
+  Welcome back, <b>{{firstName}} {{lastName}}</b>!
+{{/with}}
+
+# Binding Element Attributes with {{bindAttr}}
+<img {{bindAttr src="logoUrl"}} alt="Logo"> will bind "logoUrl" to the element.
+
+* will be dasherized
+<div {{bindAttr class="isUrgent"}}>
+=> 
+<div class="is-urgent">
+
+* multiple class
+<div {{bindAttr class="isUrgent priority"}}>
+
+* use urgent string to replace isUrgent.
+<div {{bindAttr class="isUrgent:urgent"}}>
+
+# Handling Events
+<a href="#" {{action "edit" on="click"}}>Edit</a>
+<a href="#" {{action "edit" target="parentView"}}>Edit</a>
+
+# View hierarchy
+* {{view App.InfoView}}
+
+* if infoView is defined in current view's class
+{{view infoView}}
+
+* defining the child view within the parent template
+{{#view App.InfoView}}
+  <b>Posts:</b> {{posts}}
+  <br>
+  <b>Hobbies:</b> {{hobbies}}
+{{/view}}
+
+# binding firstName from controller in view
+firstNameBinding: 'App.userController.content.firstName'
+
+* in sub-view
+if you are doing any thing other than setting up bindings, please create a new subclass.
+
+{{#view App.UserView postsBinding="App.userController.content.posts" hobbiesBinding="App.userController.content.hobbies"}}
+  <b>Posts:</b> {{posts}}
+  <br>
+  <b>Hobbies:</b> {{hobbies}}
+{{/view}}
+
+# modify view html
+{{view App.InfoView 
+	tagName="span" // default is div
+	id="xxx"
+	class="x y z" or classBinding="x"
+}}
+
+# list
+{{#each collection}}
+	{{content.xxx}} // item will be set to content.
+{{/each}}
+
+# writing helper
+Handlebars.registerHelper('highlight', function(property) {
+  var value = Ember.getPath(this, property);
+  return new Handlebars.SafeString('<span class="high">'+value+'</span>');
+});
+
+{{highlight name}}
+
+# included views
+{{view Ember.Checkbox titleBinding="content.title" valueBinding="content.isDone"}}
+
+var button = Ember.Button.create({
+	target: 'MyApp.myActionObject',
+	action: 'myAction'
+});
+
+# Ember.ContainerView
+var container = Ember.ContainerView.create({
+  childViews: ['firstView', 'secondView'],
+
+  firstView: App.FirstView,
+  secondView: App.SecondView
+});
+
+# Render Pipeline
+App.CoolView = Ember.View.create({
+  render: function(buffer) {
+    buffer.push("<b>This view is so cool!</b>");
+  }
+});
+
+# Customizing the html elements
+App.MyView = Ember.View.extend({
+  	tagName: 'a',
+	classNames: ['my-view']
+  	classNameBindings: ["xx"]
+	attributeBindings: ['href'],
+  	href: "http://emberjs.com"
+});
+
+# Enumerable
+var array = [1,2,3];
+array.forEach(function(item) {
+  console.log(item, this.indexOf(item));
+}, array)
+
+array.forEach(array.removeObject, array);
+
+# The Enumerable Interface
+enumerable.forEach(function(item, index, self) {
+  console.log(item);
+});
+
+people.invoke("sayHello") // invoking method
+
+[1,2,3].get('firstObject') // 1
+[1,2,3].get('lastObject')  // 3
+
+# Transforming
+['Goodbye', 'cruel', 'world'].map(function(item, index, self) {
+  return item + "!";
+});
+// returns ["Goodbye!", "cruel!", "world!"]
+
+# setting and getting on each object
+var arr = [Ember.Object.create(), Ember.Object.create()];
+// we now have an Array containing two Ember.Objects
+arr.setEach('name', 'unknown');
+arr.getEach('name') // ['unknown', 'unknown']
+
+# Filtering
+var arr = [1,2,3,4,5];
+arr.filter(function(item, index, self) {
+  if (item < 4) { return true; }
+})
+// returns [1,2,3]
+
+* Filter by property value
+todos.filterProperty('isDone', true);
+
+# Aggregate
+* if every person is happy.
+people.every(function(person, index, self) {
+  if(person.get('isHappy')) { return true; }
+});
+* if one of them is happy
+people.some(function(person, index, self) {
+  if(person.get('isHappy')) { return true; }
+});
+
+* when detecting property of object
+people.everyProperty('isHappy', true) // false
+people.someProperty('isHappy', true)  // true
+
+# slim for ember view
+handlebars:
+	xxxxxxxxxxxx
+===>
+<script type="text/x-handlebars" data-template-name="say-hello">
+   xxxxxxx
+</script>
+
+# Ember.View will auto added a "div" mark, if you want to use it in table there will be some trouble, please use tagName to make the html elements correct.

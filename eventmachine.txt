@@ -1,3 +1,6 @@
+NON-BLOCKING-IO
+
+
 # Don't block the reactor
 1. while(1) or while(true)
 2. Net::HTTP.new("")
@@ -5,6 +8,8 @@ Use EM::HttpRequest instead.
 3. Slow Code
 Use EM.defer to optimze.
 4. Sleep will block
+
+# Any IO related operations should be happened on Main thread.
 
 # Everything should be in the EM.run {} block
 
@@ -30,15 +35,20 @@ EM.connect(ip, port, EM::Connection)
 # EM.add_periodic_timer(time) {}
 
 # EM.defer {} runs a block concurrently on a sperate thread (from a pool of 20)
+you can use EM.threadpool_size to get and set the size
 
 # EM.defer(operation, completion_callback)
 
 # EM::Queue
 queue.pop {}
 queue.push(data)
+* Queue can gather data from different thread, and fetch and execute on the main thread.
+* queue.pop will wait for data been pushed into queue.
+* queue.pop runs on the main thread.
 
 # Endless queue
 work = Proc.new { |item|
+  # do something
   EM.next_tick {q.pop(&work)}
 }
 q.pop(&work)
@@ -54,11 +64,12 @@ is a publish/subscribe system.
 * deferrable object can register *callback* and *errback*
 deferrable.callback {}
 deferrable.callback {|x, y, z|} // any number of args
-deferrable.errback {}
-deferrable.set_deferred_status :succeeded
+deferrable.errback {} 
 * To trigger the callback by calling:
-deferrable.succeed
-deferrable.fail
+deferrable.succeed == deferrable.set_deferred_status :succeeded
+deferrable.fail == deferrable.set_deferred_status :fail
+deferrable.set_deferred_status :nil ==== deferrable.reset
+* if attached many callbacks, they will will be executed in order of attaching.
 
 # UDP
 * Server:
@@ -86,4 +97,19 @@ EM::WebSocket.start(:host => x, :port => x) do |ws|
 end
 
 # EM::Synchrony
-Just help you to make the code looks like normal flow but not callback hell.
+It's a Fiber aware lib, Just help you to make the code looks like normal flow but not callback hell.
+
+# EM based web server or framework
+* thin
+* Goliath
+* Fastr
+
+# em-resque
+
+# Connections
+* check the max connection number
+- linux
+cat /proc/sys/fs/file-max
+- macosx
+sysctl -a
+fs.file-max = 65535

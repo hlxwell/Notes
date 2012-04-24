@@ -1,0 +1,5 @@
+SUBSCRIBE xxx
+PSUBSCRIBE *xxx
+PUNSUBSCRIBE news.*
+UNSUBSCRIBE xxx
+PUBLISH channel word

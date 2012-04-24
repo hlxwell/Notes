@@ -1,0 +1,244 @@
+# guide
+http://www.erlang.org/course/sequential_programming.html
+
+# Shell commands
+* b()
+List all var binds.
+
+* f(Var) and f()
+To unbind one var, or all vars.
+
+* h()
+History, latest 20 commands
+
+# apply(mode, func, args)
+
+# load module
+c(mod)
+m(mod)
+
+# '_' mark
+if 
+   case1 ->
+   _ -> # else
+end
+
+# block
+fun(x) -> xxx
+
+# no loops use recursive
+
+# -compile(export_all).
+
+# erlang:processes()
+to list all processes
+
+# to kill process
+kill other: exit(pid, Reason)   
+kill self: exit(Reason)
+
+# link(Pid)
+create a bi-direction link to pid
+
+# net_adm:ping(nodename@server).
+return pong = success and pang = failed
+
+# rpc:call(node, module, method, args).
+
+# -export(mod_name, [Param]).
+
+# process_flag(trap_exit, true)
+will trap {'EXIT', From, Reason} message.
+
+# weirdos
+$a == 97
+true, false % atoms
+P#person.name % compile-time struct
+
+# list iteration template
+print([]) -> ok;
+print([H|T]) -> xxx, print(T).
+
+# erl -name longname | erl -sname shortname
+A node with a long node name cannot communicate with a node with a short node name.
+
+# normal result checking process
+case gen_tcp(xxx) of
+  {} -> xxx;
+  {} -> yyy;
+end.
+
+# Run process in background
+erl -detached -s test start
+
+# erl -sname -hidden
+it will prevent create unnecessary connection.
+nodes(hidden). to show all hidden nodes
+
+# epmd
+
+# spawn('itjob@theplant', server, loop, []).
+
+# CTRL+C
+"k" to kill current loop.
+"d" to list all nodes.
+
+# help().
+To view many shell internal commands.
+
+# gen_server
+handle_call({new, Who}, _From, State) ->
+  {reply, ReplayContent, State}
+gen_server:call(?MODULE, {new, Who})
+* dead lock
+when server invoke handle_call invoke other server handle_call, will block the server, since handling a call is blocked whole run loop.
+* gen_server:cast(?MODULE, stop).
+
+# when gen_server got a msg which unable to handle with, then it will go down.
+
+# sys:get_status(monitor).
+check the process status.
+
+# running erlang in background
+erl -s chat_system -detached -sname foo
+
+# whereis(process).
+
+# registered().
+to check registered services.
+
+# hrl file, is erlang header file
+you can use -include("my_records.hrl"). to load them in.
+http://www.erlang.org/doc/reference_manual/macros.html
+
+# ???
+a ->
+	x; <--- why ';'
+a ->
+	y.
+
+# rebar
+http://www.linezing.com/blog/?p=347
+https://github.com/basho/rebar/blob/master/rebar.config.sample
+http://wiki.erlang-web.org/Rebar
+
+# web tool to manage all server status
+webtool:start().
+
+# add app load path to
+erl -pa -pz
+pa = prepend
+pz = append
+
+# log4erl
+- application:start(log4erl).
+- log4erl:add_console_appender(cmd_logs, {info, "%j %T [%L] %l%n"}).
+- log4erl:get_appenders().
+- log4erl:conf("priv/log4erl.conf").
+
+# error_logger:info_msg("....").
+
+普通递归:
+recursive_sum([H|T]) -> H+recursive_sum(T);
+recursive_sum([]) -> 0.
+尾递归:
+sum(L) -> sum(L, 0).
+sum([H|T], Sum) -> sum(T, Sum + H);
+sum([], Sum) -> Sum.
+
+# show all running applications
+application:which_applications()
+
+# add element to head of list
+[1|[3,2]].
+
+# Emakefile
+http://www.cnblogs.com/samis/articles/1841189.html
+
+# Var name if it's *_Msg* means: don't Warning me it's unused.
+
+# can't register Pid to same name twice.
+
+# get system env
+application:get_env(Tag)
+application:get_all_env()
+
+# start application
+application:start(ApplicationName).
+application:stop(ApplicationName).
+
+# PEG
+https://github.com/seancribbs/neotoma/wiki
+
+# application:
+* log_monitor.app.src
+mod -> log_monitor  === will looking for ===> log_monitor.erl#start
+* log_monitor.erl
+will start log_monitor_sup:start_link().
+* log_monitor_sup.erl
+?CHILD(log_monitor_server, worker) to tell how to start server.
+* log_monitor_server.erl is a gen_server
+
+# ERL_EPMD_PORT environment var
+this is used specify the erl's epmd port.
+
+# upgrade
+1. ./rebar generate-upgrade previous_release=dummynode_first
+2. release_handler:which_releases().
+3. release_handler:unpack_release("dummynode_2").
+4. release_handler:install_release("2").
+5. final confirm step: release_handler:make_permanent("2").
+* .appup file
+{"3", 
+    %% Upgrade instructions
+    [{"2", [
+        {update,dummy_app_server,{advanced,[from2to3]}}
+    ]}], 
+    %% Downgrade instructions
+    [{"2",[
+        {update,dummy_app_server,{advanced,[from3to2]}}
+    ]}]
+}.
+
+# erlang top
+etop:start().
+* or commandline
+- ~/erlang-otp-079e06a/lib/observer/priv/bin
+etop -node ip@litaocheng -lines 5 -sort memory -interval 1 -accumulate true -tracing on
+
+# thrift could send message to other language.
+
+# UDP
+gen_udp:open(Port)
+gen_udp:close(Socket)
+gen_udp:send(Socket, Address, Port, Packet)
+gen_udp:recv(Socket, Length)
+gen_udp:recv(Socket, Length, Timeout)
+
+# TCP
+* Server
+{ok, ListenSocket} = gen_tcp:listen(Port, Options)
+{ok, Socket} = gen_tcp:accept(ListenSocket)
+{ok, Binary} = gen_tcp:recv(Socket, 0, 5000)
+
+* Client
+{ok, Socket} = gen_tcp:connect(Host, Port, Options)
+gen_tcp:close(Socket)
+gen_tcp:send(Socket, Data)
+
+# inet module
+inet:i()
+inet:getstat(Socket)
+inet:getopts(Socket, [active,exit_on_close,header,nodelay])
+inet:gethostname()
+inet:peername(Socket)
+inet:gethostname()
+inet:getaddr(Host,Family)
+inet:gethostbyname()
+
+# lists:concat([x, y])
+
+# is_binary, is_atom, is_boolean, is_tuple
+
+# regs() will list all registered process names.
+Name,Pid,Initial Call,Reds Msgs

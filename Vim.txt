@@ -1,0 +1,7 @@
+# delete word
+daw # delete around word
+ci" # change inside "
+da" # delete around word
+
+# [[,  ]]  go to prev, next buffer
+ 

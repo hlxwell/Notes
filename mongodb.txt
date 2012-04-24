@@ -52,3 +52,8 @@ Collection.find({}).each(function(doc){
 More at: 
 * http://blog.learnboost.com/blog/mongoose/
 * http://mongoosejs.com/
+
+# select sub-range
+db.posts.find({}, {comments:{$slice: 5}}) // first 5 comments
+
+# one document has 4 MB limit
